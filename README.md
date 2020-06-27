@@ -13,7 +13,7 @@ Caches sulotion for Cumulo and Respo
 ```
 
 ```clojure
-(caches.core/display-summay!)
+(caches.core/show-summay!)
 ```
 
 Methods:
