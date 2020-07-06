@@ -34,7 +34,7 @@
                  :else false)))
             (into {}))))
     (println
-     "[Respo Caches] Performed GC, from "
+     "[Caches] Performed GC, from "
      (count (states-0 :caches))
      " to "
      (count (@*cache-states :caches)))))
