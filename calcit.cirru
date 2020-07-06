@@ -282,7 +282,7 @@
                   |v $ {} (:type :expr) (:by |yeKFqj7rX) (:at 1592323714536)
                     :data $ {}
                       |T $ {} (:type :leaf) (:by |yeKFqj7rX) (:at 1592323714536) (:text |println) (:id |g2-SnC2nF_K)
-                      |j $ {} (:type :leaf) (:by |yeKFqj7rX) (:at 1592323714536) (:text "|\"[Respo Caches] Performed GC, from ") (:id |RFdKhdEPzXj)
+                      |j $ {} (:type :leaf) (:by |yeKFqj7rX) (:at 1594019939061) (:text "|\"[Caches] Performed GC, from ") (:id |RFdKhdEPzXj)
                       |r $ {} (:type :expr) (:by |yeKFqj7rX) (:at 1592323714536)
                         :data $ {}
                           |T $ {} (:type :leaf) (:by |yeKFqj7rX) (:at 1592323714536) (:text |count) (:id |hDCE-4TNI8R)
