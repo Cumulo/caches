@@ -1,4 +1,4 @@
-{:version "0.1.0",
+{:version "0.1.1-a1",
  :group-id "cumulo",
  :artifact-id "caches",
  :skip-tag true,
