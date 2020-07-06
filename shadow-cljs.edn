@@ -2,6 +2,7 @@
   :source-paths ["src"]
   :dependencies [
     [medley "1.3.0"]
+    [mvc-works/lilac "0.1.6"]
   ]
   :builds {
     :app {

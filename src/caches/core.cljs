@@ -1,5 +1,7 @@
 
-(ns caches.core (:require [clojure.string :as string]))
+(ns caches.core
+  (:require [clojure.string :as string]
+            [lilac.core :refer [dev-check record+ number+ optional+]]))
 
 (defn access-cache [*cache-states params]
   (let [caches (@*cache-states :caches), the-loop (@*cache-states :loop)]
@@ -13,7 +15,14 @@
        (:value (get caches params)))
       nil)))
 
+(def lilac-gc-configs
+  (optional+
+   (record+
+    {:cold-duration (number+), :trigger-loop (number+), :elapse-loop (number+)}
+    {:check-keys? true, :all-optional? true})))
+
 (defn new-caches [gc-configs]
+  (dev-check gc-configs lilac-gc-configs)
   (let [options (merge {:cold-duration 400, :trigger-loop 100, :elapse-loop 50} gc-configs)]
     (println "Initialized caches with options:" options)
     (atom {:loop 0, :caches {}, :gc options})))
