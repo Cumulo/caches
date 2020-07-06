@@ -1,6 +1,7 @@
-{:version "0.1.0-a2"
- :group-id "cumulo"
- :artifact-id "caches"
- :skip-tag true
- :description "Caches library for Cumulo and Respo"
+{:version "0.1.0",
+ :group-id "cumulo",
+ :artifact-id "caches",
+ :skip-tag true,
+ :description "Caches library for Cumulo and Respo",
  :scm-url "https://github.com/cumulo/caches"}
+
