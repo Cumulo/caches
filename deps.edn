@@ -7,7 +7,7 @@
   :aliases {
     :release {
       :extra-deps {
-        appliedscience/deps-library {:mvn/version "0.4.0"}
+        applied-science/deps-library {:mvn/version "0.4.0"}
       }
       :main-opts ["-m" "applied-science.deps-library"]
     }
