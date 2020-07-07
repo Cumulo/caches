@@ -28,7 +28,7 @@
     (atom {:loop 0, :caches {}, :gc options})))
 
 (defn perform-gc! [*cache-states]
-  (let [states-0 @*cache-states, gc (states-0 :gc)]
+  (let [states-0 @*cache-states, gc (states-0 :gc), *removed-used (atom [])]
     (swap!
      *cache-states
      update
@@ -39,14 +39,17 @@
              (fn [[params info]]
                (cond
                  (zero? (info :hit-times)) true
-                 (> (- (states-0 :loop) (info :hit-loop)) (gc :elapse-loop)) true
+                 (> (- (states-0 :loop) (info :hit-loop)) (gc :elapse-loop))
+                   (do (swap! *removed-used conj (info :hit-times)) true)
                  :else false)))
             (into {}))))
     (println
-     "[Caches] Performed GC, from "
-     (count (states-0 :caches))
-     " to "
-     (count (@*cache-states :caches)))))
+     (str
+      "[Caches GC] Performed GC, from "
+      (count (states-0 :caches))
+      " to "
+      (count (@*cache-states :caches))))
+    (println "Removed counts" (frequencies @*removed-used))))
 
 (defn new-loop! [*cache-states]
   (swap! *cache-states update :loop inc)
@@ -54,13 +57,22 @@
     (when (and (> loop-count (gc :cold-duration)) (zero? (rem loop-count (gc :trigger-loop))))
       (perform-gc! *cache-states))))
 
-(defn reset-caches! [*cache-states] (swap! *cache-states assoc :loop 0 :caches {}))
+(defn reset-caches! [*cache-states]
+  (println "[Caches] reset.")
+  (swap! *cache-states assoc :loop 0 :caches {}))
 
 (defn show-summary! [*cache-states]
-  (println "Caches summary:")
+  (println
+   (str
+    "\n"
+    "[Caches Summary] of size "
+    (count (@*cache-states :caches))
+    ". Currenly loop is "
+    (:loop @*cache-states)
+    "."))
   (doseq [[params info] (@*cache-states :caches)]
     (println "PARAMS:" params)
-    (println "INFO:" (assoc info :value 'VALUE))))
+    (println "  INFO:" (assoc info :value 'VALUE))))
 
 (defn write-cache! [*cache-states params value]
   (let [the-loop (@*cache-states :loop)]
@@ -82,10 +94,11 @@
           {:value value, :initial-loop the-loop, :last-hit the-loop, :hit-times 0}))))))
 
 (defn user-scripts [*caches]
-  (show-summary! *caches)
+  (def *caches (new-caches {:cold-duration 10, :trigger-loop 4, :elapse-loop 2}))
   (write-cache! *caches [1 2 3 4] 10)
   (write-cache! *caches [1 2 3] 6)
   (access-cache *caches [1 2 3 4])
+  (access-cache *caches [1 2 3])
   (new-loop! *caches)
-  (println @*caches)
-  (js/console.clear))
+  (show-summary! *caches)
+  (perform-gc! *caches))
