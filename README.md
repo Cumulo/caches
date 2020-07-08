@@ -9,7 +9,7 @@ Caches sulotion for Cumulo and Respo
 [![Clojars Project](https://img.shields.io/clojars/v/cumulo/caches.svg)](https://clojars.org/cumulo/caches)
 
 ```edn
-[cumulo/caches "0.1.0-a1"]
+[cumulo/caches "0.1.1-a4"]
 ```
 
 ```clojure
