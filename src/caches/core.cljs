@@ -9,11 +9,22 @@
       (do
        (swap!
         *cache-states
-        update-in
-        [:caches params]
-        (fn [info] (-> info (assoc :last-hit the-loop) (update :hit-times inc))))
+        (fn [cache-states]
+          (-> cache-states
+              (update-in
+               [:caches params]
+               (fn [info] (-> info (assoc :last-hit the-loop) (update :hit-times inc))))
+              (update-in [:logs :this-loop :hit] inc)
+              (update-in [:logs :all-loops :hit] inc))))
        (:value (get caches params)))
-      nil)))
+      (do
+       (swap!
+        *cache-states
+        (fn [cache-states]
+          (-> cache-states
+              (update-in [:logs :this-loop :missed] inc)
+              (update-in [:logs :all-loops :missed] inc))))
+       nil))))
 
 (def lilac-gc-configs
   (optional+
@@ -25,7 +36,11 @@
   (dev-check gc-configs lilac-gc-configs)
   (let [options (merge {:cold-duration 400, :trigger-loop 100, :elapse-loop 50} gc-configs)]
     (println "Initialized caches with options:" options)
-    (atom {:loop 0, :caches {}, :gc options})))
+    (atom
+     {:loop 0,
+      :caches {},
+      :gc options,
+      :logs {:this-loop {:hit 0, :missed 0}, :all-loops {:hit 0, :missed 0}}})))
 
 (defn perform-gc! [*cache-states]
   (let [states-0 @*cache-states, gc (states-0 :gc), *removed-used (atom [])]
@@ -53,6 +68,7 @@
 
 (defn new-loop! [*cache-states]
   (swap! *cache-states update :loop inc)
+  (swap! *cache-states assoc-in [:logs :this-loop] {:hit 0, :missed 0})
   (let [loop-count (@*cache-states :loop), gc (@*cache-states :gc)]
     (when (and (> loop-count (gc :cold-duration)) (zero? (rem loop-count (gc :trigger-loop))))
       (perform-gc! *cache-states))))
@@ -70,9 +86,9 @@
     ". Currenly loop is "
     (:loop @*cache-states)
     "."))
+  (println (:logs @*cache-states))
   (doseq [[params info] (@*cache-states :caches)]
-    (println "PARAMS:" params)
-    (println "  INFO:" (assoc info :value 'VALUE))))
+    (println "INFO:" (assoc info :value 'VALUE))))
 
 (defn write-cache! [*cache-states params value]
   (let [the-loop (@*cache-states :loop)]
