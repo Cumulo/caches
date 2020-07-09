@@ -3,20 +3,20 @@
   (:require [clojure.string :as string]
             [lilac.core :refer [dev-check record+ number+ optional+]]))
 
-(defn access-cache [*cache-states params]
+(defn access-cache [*cache-states f params]
   (let [caches (@*cache-states :caches), the-loop (@*cache-states :loop)]
-    (if (contains? caches params)
+    (if (and (contains? caches f) (contains? (:caches (get caches f)) params))
       (do
        (swap!
         *cache-states
         (fn [cache-states]
           (-> cache-states
               (update-in
-               [:caches params]
+               [:caches f :caches params]
                (fn [info] (-> info (assoc :last-hit the-loop) (update :hit-times inc))))
               (update-in [:logs :this-loop :hit] inc)
               (update-in [:logs :all-loops :hit] inc))))
-       (:value (get caches params)))
+       (:value (get-in caches [f :caches params])))
       (do
        (swap!
         *cache-states
@@ -48,15 +48,23 @@
      *cache-states
      update
      :caches
-     (fn [caches]
-       (->> caches
-            (remove
-             (fn [[params info]]
-               (cond
-                 (zero? (info :hit-times)) true
-                 (> (- (states-0 :loop) (info :hit-loop)) (gc :elapse-loop))
-                   (do (swap! *removed-used conj (info :hit-times)) true)
-                 :else false)))
+     (fn [dict]
+       (->> dict
+            (map
+             (fn [[f info]]
+               (update
+                info
+                :caches
+                (fn [caches]
+                  (->> caches
+                       (remove
+                        (fn [[params info]]
+                          (cond
+                            (zero? (info :hit-times)) true
+                            (> (- (states-0 :loop) (info :hit-loop)) (gc :elapse-loop))
+                              (do (swap! *removed-used conj (info :hit-times)) true)
+                            :else false)))
+                       (into {}))))))
             (into {}))))
     (println
      (str
@@ -87,34 +95,50 @@
     (:loop @*cache-states)
     "."))
   (println (:logs @*cache-states))
-  (doseq [[params info] (@*cache-states :caches)]
-    (println "INFO:" (assoc info :value 'VALUE))))
+  (doseq [[f dict] (@*cache-states :caches)]
+    (println "FUNCTION.." f)
+    (doseq [[params info] (:caches dict)] (println "INFO:" (assoc info :value 'VALUE)))))
 
-(defn write-cache! [*cache-states params value]
+(defn write-cache! [*cache-states f params value]
   (let [the-loop (@*cache-states :loop)]
     (swap!
      *cache-states
      update
      :caches
      (fn [caches]
-       (if (contains? caches params)
-         (do
-          (println "[Respo Caches] already exisits" params)
-          (update
-           caches
-           params
-           (fn [info] (-> info (assoc :last-hit the-loop) (update :hit-times inc)))))
+       (if (contains? caches f)
+         (let [caller-info (get caches f)]
+           (if (contains? (:caches caller-info) params)
+             (do
+              (println "[Respo Caches] already exisits" params "for" f)
+              (update-in
+               caches
+               [f :caches params]
+               (fn [info] (-> info (assoc :last-hit the-loop) (update :hit-times inc)))))
+             (assoc-in
+              caches
+              [f :caches params]
+              {:value value, :initial-loop the-loop, :last-hit the-loop, :hit-times 0})))
          (assoc
           caches
-          params
-          {:value value, :initial-loop the-loop, :last-hit the-loop, :hit-times 0}))))))
+          f
+          {:caches {params {:value value,
+                            :initial-loop the-loop,
+                            :last-hit the-loop,
+                            :hit-times 0}},
+           :hit-time 0,
+           :initial-loop the-loop}))))))
 
 (defn user-scripts [*caches]
   (def *caches (new-caches {:cold-duration 10, :trigger-loop 4, :elapse-loop 2}))
-  (write-cache! *caches [1 2 3 4] 10)
-  (write-cache! *caches [1 2 3] 6)
-  (access-cache *caches [1 2 3 4])
-  (access-cache *caches [1 2 3])
+  (defn f1 [x] )
+  (defn f2 [x y] )
+  (write-cache! *caches f1 [1 2 3 4] 10)
+  (write-cache! *caches f1 [1 2 3] 6)
+  (write-cache! *caches f2 [1 2 3] 6)
+  (access-cache *caches f1 [1 2 3 4])
+  (access-cache *caches f1 [1 2 3])
   (new-loop! *caches)
   (show-summary! *caches)
-  (perform-gc! *caches))
+  (perform-gc! *caches)
+  (identity @*caches))
