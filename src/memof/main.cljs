@@ -1,5 +1,5 @@
 
-(ns caches.main (:require [caches.core :as caches]))
+(ns memof.main (:require [memof.core :as caches]))
 
 (defonce *caches (caches/new-caches {}))
 

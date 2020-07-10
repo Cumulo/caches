@@ -1,20 +1,20 @@
 
-Caches sulotion for Cumulo and Respo
+Function memoization sulotion for Cumulo and Respo
 ----
 
-> a caches library as a replacement for memoizations in Cumulo and Respo. It's mostly experimental.
+> a memo library as a replacement for memoizations in Cumulo and Respo. It's mostly experimental.
 
 ### Usage
 
-[![Clojars Project](https://img.shields.io/clojars/v/cumulo/caches.svg)](https://clojars.org/cumulo/caches)
+[![Clojars Project](https://img.shields.io/clojars/v/cumulo/memof.svg)](https://clojars.org/cumulo/memof)
 
 ```edn
-[cumulo/caches "0.1.1-a4"]
+[cumulo/memof "0.1.2-a1"]
 ```
 
 ```clojure
-(defonce *caches (caches.core/new-caches))
-(caches.core/show-summay! *caches)
+(defonce *caches (memof.core/new-caches))
+(memof.core/show-summay! *caches)
 ```
 
 Methods:

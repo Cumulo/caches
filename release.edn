@@ -1,7 +1,7 @@
-{:version "0.1.1-a4",
+{:version "0.1.2-a1",
  :group-id "cumulo",
- :artifact-id "caches",
+ :artifact-id "memof",
  :skip-tag true,
- :description "Caches library for Cumulo and Respo",
- :scm-url "https://github.com/cumulo/caches"}
+ :description "Function memoization library for Cumulo and Respo",
+ :scm-url "https://github.com/cumulo/memof"}
 
