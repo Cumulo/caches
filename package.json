@@ -5,7 +5,7 @@
     "deploy": "clj -A:release",
     "m2": "clj -A:release install",
     "compile": "yarn shadow-cljs compile app",
-    "watch": "yarn shadow-cljs watch app"
+    "watch": "yarn shadow-cljs watch app testing"
   },
   "main": "index.js",
   "repository": "git@github.com:mvc-works/calcit-nodejs-workflow.git",

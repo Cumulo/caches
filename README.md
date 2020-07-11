@@ -2,7 +2,7 @@
 Function memoization sulotion for Cumulo and Respo
 ----
 
-> a memo library as a replacement for memoizations in Cumulo and Respo. It's mostly experimental.
+> a memo library as a replacement for memoizations in Cumulo and Respo. It's mainly experimental.
 
 ### Usage
 
@@ -13,8 +13,15 @@ Function memoization sulotion for Cumulo and Respo
 ```
 
 ```clojure
-(defonce *states (memof.core/new-caches))
-(memof.core/show-summay! *states)
+(defonce *states (atom (memof.core/new-caches {}))) ; pass GC options
+
+(defn f1 [x y] (* x y))
+
+(memof.core/write-record! *states f1 [1 2] 3)
+
+(memof.core/access-record) ; returns 3
+
+(memof.core/new-loop!) ; when loop is large enough, it will trigger GC
 ```
 
 States structure:
@@ -40,13 +47,32 @@ States structure:
 
 Methods:
 
-* `(new-states)` returns an atom holding states
-* `(show-summary! *states)` list entries after formatted
+* `(new-states)` creates states holding all entries
+* `(show-summary @*states)` list entries after formatted
 * `(write-record! *states f params value)` write to cache, `params` supposed to be a collection
 * `(access-record *states f params)` access and return value(or `nil`)
 * `(new-loop! *states)` loop and trigger actions
 * `(perform-gc! *states)` remove entries that are probably no longer useful
 * `(reset-entries! *states)` clear entries
+
+### Macros usage
+
+By designed, it supposed to be used behind macros:
+
+```clj
+(defmacro defcomp [x params & body]
+  (let [com-helper (gensym (str x "-helper-"))]
+    `(do
+       (defn ~com-helper [~@params] ~@body)
+       (defn ~x [~@params] (call-comp-helper ~com-helper [~@params])))))
+
+(defn call-comp-helper [f params]
+  (let [v (caches/access-cache *states f params)]
+    (if (some? v)
+      v
+      (let [result (apply f params)]
+        (caches/write-cache! *states f x params result) result))))
+```
 
 ### Workflow
 
