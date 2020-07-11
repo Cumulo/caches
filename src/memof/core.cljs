@@ -17,7 +17,7 @@
                 (update-in
                  [:records params]
                  (fn [record]
-                   (-> record (assoc :last-hit the-loop) (update :hit-times inc))))
+                   (-> record (assoc :last-hit-loop the-loop) (update :hit-times inc))))
                 (update :hit-times inc))))
          (get-in entries [f :records params :value]))
         (do (swap! *states update-in [:entries f :missed-times] inc) nil))
@@ -49,7 +49,9 @@
                          (fn [[params record]]
                            (cond
                              (zero? (record :hit-times)) true
-                             (> (- (states-0 :loop) (record :hit-loop)) (gc :elapse-loop))
+                             (>
+                              (- (states-0 :loop) (record :last-hit-loop))
+                              (gc :elapse-loop))
                                (do (swap! *removed-used conj (record :hit-times)) true)
                              :else false)))
                         (into {}))))]))
@@ -120,12 +122,13 @@
                (-> entry
                    (update-in
                     [:records params]
-                    (fn [info] (-> info (assoc :last-hit the-loop) (update :hit-times inc))))
+                    (fn [info]
+                      (-> info (assoc :last-hit-loop the-loop) (update :hit-times inc))))
                    (update :hit-times inc)))
               (assoc-in
                entry
                [:records params]
-               {:value value, :initial-loop the-loop, :last-hit the-loop, :hit-times 0})))))))))
+               {:value value, :initial-loop the-loop, :last-hit-loop the-loop, :hit-times 0})))))))))
 
 (defn user-scripts [*states]
   (def *states (new-states {:cold-duration 10, :trigger-loop 4, :elapse-loop 2}))
