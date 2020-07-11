@@ -19,7 +19,7 @@
                  (fn [record]
                    (-> record (assoc :last-hit the-loop) (update :hit-times inc))))
                 (update :hit-times inc))))
-         (get-in entries [f :entries params :value]))
+         (get-in entries [f :records params :value]))
         (do (swap! *states update-in [:entries f :missed-times] inc) nil))
       nil)))
 
@@ -73,25 +73,28 @@
   (dev-check gc-configs lilac-gc-configs)
   (let [options (merge {:cold-duration 400, :trigger-loop 100, :elapse-loop 50} gc-configs)]
     (println "Initialized caches with options:" options)
-    (atom {:loop 0, :entries {}, :gc options})))
+    {:loop 0, :entries {}, :gc options}))
 
 (defn reset-entries! [*states]
   (println "[Memof] reset.")
   (swap! *states assoc :loop 0 :caches {}))
 
-(defn show-summary! [*states]
-  (println
-   (str
-    "\n"
-    "[Meof Summary] of size "
-    (count (@*states :entries))
-    ". Currenly loop is "
-    (:loop @*states)
-    "."))
-  (doseq [[f entry] (@*states :entries)]
-    (println "FUNCTION.." f (dissoc entry :records))
-    (doseq [[params record] (:records entry)]
-      (println "INFO:" (assoc record :value 'VALUE)))))
+(defn show-summary [states]
+  (let [states (if (satisfies? IAtom states)
+                 (do (println "[WARN] pass dereferenced value of show-summary!") @states)
+                 states)]
+    (println
+     (str
+      "\n"
+      "[Meof Summary] of size "
+      (count (states :entries))
+      ". Currenly loop is "
+      (:loop states)
+      "."))
+    (doseq [[f entry] (states :entries)]
+      (println "FUNCTION.." f (dissoc entry :records))
+      (doseq [[params record] (:records entry)]
+        (println "INFO:" (assoc record :value 'VALUE))))))
 
 (defn write-record! [*states f params value]
   (let [the-loop (@*states :loop)]
@@ -110,7 +113,8 @@
           entries
           f
           (fn [entry]
-            (if (contains? (:recods entry) params)
+            (if (and (contains? (:recods entry) params)
+                     (= value (get-in entry [:records params :value])))
               (do
                (println "[Memof Record] already exisits" params "for" f)
                (-> entry
@@ -134,6 +138,6 @@
   (access-record *states f1 [1 2 3])
   (access-record *states f1 [1 2 'x])
   (new-loop! *states)
-  (show-summary! *states)
+  (show-summary @*states)
   (perform-gc! *states)
   (identity @*states))
