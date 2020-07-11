@@ -67,11 +67,11 @@ By designed, it supposed to be used behind macros:
        (defn ~x [~@params] (call-comp-helper ~com-helper [~@params])))))
 
 (defn call-comp-helper [f params]
-  (let [v (caches/access-cache *states f params)]
+  (let [v (memof/access-cache *states f params)]
     (if (some? v)
       v
       (let [result (apply f params)]
-        (caches/write-cache! *states f x params result) result))))
+        (memof/write-cache! *states f x params result) result))))
 ```
 
 ### Workflow
