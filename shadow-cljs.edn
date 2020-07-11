@@ -6,8 +6,8 @@
   ]
   :builds {
     :app {
-      :target :node-script, :output-to "target/server.js", :main caches.main/main!
-      :devtools {:after-load caches.main/reload!}
+      :target :node-script, :output-to "target/server.js", :main memof.main/main!
+      :devtools {:after-load memof.main/reload!}
     }
   }
 }
