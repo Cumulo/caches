@@ -1,8 +1,8 @@
 
-(ns memof.main (:require [memof.core :as caches]))
+(ns memof.main (:require [memof.core :as memof]))
 
-(defonce *caches (caches/new-caches {}))
+(defonce *states (memof/new-states {}))
 
-(defn main! [] (println "Started.") (caches/show-summary! *caches))
+(defn main! [] (println "Started.") (memof/show-summary! *states))
 
 (defn reload! [] (.clear js/console) (println "Reloaded."))
