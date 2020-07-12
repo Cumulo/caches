@@ -36,4 +36,4 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-clojars
 
-      - run: yarn && yarn compile
+      - run: yarn && yarn shadow-cljs compile test && node target/test.js

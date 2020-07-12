@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: run tests
-        run: 'yarn && yarn shadow-cljs compile app'
+        run: yarn && yarn shadow-cljs compile test && node target/test.js
 
       - run: echo Working on ${{ github.ref }}
 
