@@ -9,7 +9,7 @@ Function memoization sulotion for Cumulo and Respo
 [![Clojars Project](https://img.shields.io/clojars/v/cumulo/memof.svg)](https://clojars.org/cumulo/memof)
 
 ```edn
-[cumulo/memof "0.2.0-a1"]
+[cumulo/memof "0.2.0-a3"]
 ```
 
 ```clojure
@@ -38,9 +38,9 @@ States structure:
     }
   }
   :gc { ; configurations
-    :cold-duration 400, ; wait for N loops before triggering GC
     :trigger-loop 100, ; trigger GC every N loops
     :elapse-loop 50 ; entries are considered unuseful after not used for N loops
+    :verbose? false ; println more logs during GC
   }
 }
 ```
@@ -54,6 +54,7 @@ Methods:
 * `(new-loop! *states)` loop and trigger actions
 * `(perform-gc! *states)` remove entries that are probably no longer useful
 * `(reset-entries! *states)` clear entries
+* `(modify-gc-options! *states {})` modify GC options
 
 ### Macros usage
 

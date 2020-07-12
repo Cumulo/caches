@@ -1,7 +1,7 @@
 
 (ns memof.core
   (:require [clojure.string :as string]
-            [lilac.core :refer [dev-check record+ number+ optional+]]))
+            [lilac.core :refer [dev-check record+ number+ optional+ boolean+]]))
 
 (defn access-record [*states f params]
   (let [entries (@*states :entries), the-loop (@*states :loop)]
@@ -23,11 +23,15 @@
         (do (swap! *states update-in [:entries f :missed-times] inc) nil))
       nil)))
 
-(def lilac-gc-configs
+(def lilac-gc-options
   (optional+
    (record+
-    {:cold-duration (number+), :trigger-loop (number+), :elapse-loop (number+)}
+    {:trigger-loop (number+), :elapse-loop (number+), :verbose? (boolean+)}
     {:check-keys? true, :all-optional? true})))
+
+(defn modify-gc-options! [*states options]
+  (dev-check options lilac-gc-options)
+  (swap! *states update :gc (fn [x0] (merge x0 options))))
 
 (defn perform-gc! [*states]
   (let [states-0 @*states, gc (states-0 :gc), *removed-used (atom [])]
@@ -52,7 +56,17 @@
                              (>
                               (- (states-0 :loop) (record :last-hit-loop))
                               (gc :elapse-loop))
-                               (do (swap! *removed-used conj (record :hit-times)) true)
+                               (do
+                                (swap! *removed-used conj (record :hit-times))
+                                (when (:verbose? gc)
+                                  (println
+                                   "[Memof verbose] removing at loop"
+                                   (:loop states-0)
+                                   "--"
+                                   f
+                                   params
+                                   (assoc record :value "VALUE")))
+                                true)
                              :else false)))
                         (into {}))))]))
             (remove (fn [[f entry]] (empty? (:records entry))))
@@ -68,12 +82,11 @@
 (defn new-loop! [*states]
   (swap! *states update :loop inc)
   (let [loop-count (@*states :loop), gc (@*states :gc)]
-    (when (and (> loop-count (gc :cold-duration)) (zero? (rem loop-count (gc :trigger-loop))))
-      (perform-gc! *states))))
+    (when (zero? (rem loop-count (gc :trigger-loop))) (perform-gc! *states))))
 
-(defn new-states [gc-configs]
-  (dev-check gc-configs lilac-gc-configs)
-  (let [options (merge {:cold-duration 400, :trigger-loop 100, :elapse-loop 50} gc-configs)]
+(defn new-states [gc-options]
+  (dev-check gc-options lilac-gc-options)
+  (let [options (merge {:trigger-loop 100, :elapse-loop 200, :verbose? false} gc-options)]
     (println "Initialized caches with options:" options)
     {:loop 0, :entries {}, :gc options}))
 
@@ -131,7 +144,7 @@
                {:value value, :initial-loop the-loop, :last-hit-loop the-loop, :hit-times 0})))))))))
 
 (defn user-scripts [*states]
-  (def *states (new-states {:cold-duration 10, :trigger-loop 4, :elapse-loop 2}))
+  (def *states (atom (new-states {:trigger-loop 4, :elapse-loop 2, :verbose? true})))
   (defn f1 [x] )
   (defn f2 [x y] )
   (write-record! *states f1 [1 2 3 4] 10)
