@@ -60,12 +60,12 @@
                                 (swap! *removed-used conj (record :hit-times))
                                 (when (:verbose? gc)
                                   (println
-                                   "[Memof verbose] removing at loop"
+                                   "[Memof verbose] removing record at loop"
                                    (:loop states-0)
                                    "--"
                                    f
                                    params
-                                   (assoc record :value "VALUE")))
+                                   (dissoc record :value)))
                                 true)
                              :else false)))
                         (into {}))))]))
@@ -73,11 +73,11 @@
             (into {}))))
     (println
      (str
-      "[Memof GC] Performed GC, from "
+      "[Memof GC] Performed GC, entries from "
       (count (states-0 :entries))
       " to "
       (count (@*states :entries))))
-    (println "Removed counts" (frequencies @*removed-used))))
+    (println " Removed counts" (frequencies @*removed-used))))
 
 (defn new-loop! [*states]
   (swap! *states update :loop inc)
@@ -96,20 +96,32 @@
 
 (defn show-summary [states]
   (let [states (if (satisfies? IAtom states)
-                 (do (println "[WARN] pass dereferenced value of show-summary!") @states)
+                 (do
+                  (println "[Memof warning] required dereferenced value in show-summary")
+                  @states)
                  states)]
     (println
      (str
       "\n"
-      "[Meof Summary] of size "
+      "[Memof Summary] of size "
       (count (states :entries))
       ". Currenly loop is "
       (:loop states)
       "."))
     (doseq [[f entry] (states :entries)]
-      (println "FUNCTION.." f (dissoc entry :records))
-      (doseq [[params record] (:records entry)]
-        (println "INFO:" (assoc record :value 'VALUE))))))
+      (let [hit-times (:hit-times entry), missed-times (:missed-times entry)]
+        (println
+         " "
+         f
+         "hit:"
+         hit-times
+         "missed:"
+         missed-times
+         "hit-ratio:"
+         (if (pos? hit-times)
+           (str (.toFixed (* 100 (/ hit-times (+ missed-times hit-times)))) "%")
+           "0%")))
+      (doseq [[params record] (:records entry)] (println "  " (dissoc record :value))))))
 
 (defn write-record! [*states f params value]
   (let [the-loop (@*states :loop)]
