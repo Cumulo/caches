@@ -33,6 +33,14 @@
   (dev-check options lilac-gc-options)
   (swap! *states update :gc (fn [x0] (merge x0 options))))
 
+(defn show-memory-usages []
+  (cond
+    (and (exists? js/performance) (fn? js/performance.memory))
+      (println "Memory usages:" (js/JSON.stringify js/performance.memory))
+    (and (exists? js/process) (fn? js/process.memoryUsage))
+      (println "Memory usages:" (js/JSON.stringify (js/process.memoryUsage)))
+    :else (println "[Memof] no fn for memory stats")))
+
 (defn perform-gc! [*states]
   (let [states-0 @*states, gc (states-0 :gc), *removed-used (atom [])]
     (swap!
@@ -77,7 +85,8 @@
       (count (states-0 :entries))
       " to "
       (count (@*states :entries))))
-    (println " Removed counts" (frequencies @*removed-used))))
+    (println " Removed counts" (frequencies @*removed-used))
+    (show-memory-usages)))
 
 (defn new-loop! [*states]
   (swap! *states update :loop inc)
@@ -88,6 +97,7 @@
   (dev-check gc-options lilac-gc-options)
   (let [options (merge {:trigger-loop 100, :elapse-loop 200, :verbose? false} gc-options)]
     (println "Initialized caches with options:" options)
+    (show-memory-usages)
     {:loop 0, :entries {}, :gc options}))
 
 (defn reset-entries! [*states]

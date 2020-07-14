@@ -1,4 +1,4 @@
-{:version "0.2.0-a4",
+{:version "0.2.0-a5",
  :group-id "cumulo",
  :artifact-id "memof",
  :skip-tag true,
