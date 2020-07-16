@@ -9,7 +9,7 @@ Function memoization sulotion for Cumulo and Respo
 [![Clojars Project](https://img.shields.io/clojars/v/cumulo/memof.svg)](https://clojars.org/cumulo/memof)
 
 ```edn
-[cumulo/memof "0.2.0-a3"]
+[cumulo/memof "0.2.0-a5"]
 ```
 
 ```clojure
@@ -19,9 +19,9 @@ Function memoization sulotion for Cumulo and Respo
 
 (memof.core/write-record! *states f1 [1 2] 3)
 
-(memof.core/access-record) ; returns 3
+(memof.core/access-record *states f1 [1 2]) ; returns 3
 
-(memof.core/new-loop!) ; when loop is large enough, it will trigger GC
+(memof.core/new-loop! *states) ; when loop is large enough, it will trigger GC
 ```
 
 States structure:
