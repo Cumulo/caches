@@ -40,7 +40,6 @@ States structure:
   :gc { ; configurations
     :trigger-loop 100, ; trigger GC every N loops
     :elapse-loop 50 ; entries are considered unuseful after not used for N loops
-    :verbose? false ; println more logs during GC
   }
 }
 ```
@@ -74,6 +73,13 @@ By designed, it supposed to be used behind macros:
       (let [result (apply f params)]
         (memof/write-cache! *states f x params result) result))))
 ```
+
+### Verbose mode
+
+By default, only GC logs will be emitted. To turn on vervose logs,
+
+* browsers, `localStorage.setItem("memofVergose", "true")`
+* Node.js , `memofVerbose=true node app.js`
 
 ### Workflow
 

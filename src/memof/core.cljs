@@ -26,7 +26,7 @@
 (def lilac-gc-options
   (optional+
    (record+
-    {:trigger-loop (number+), :elapse-loop (number+), :verbose? (boolean+)}
+    {:trigger-loop (number+), :elapse-loop (number+)}
     {:check-keys? true, :all-optional? true})))
 
 (defn modify-gc-options! [*states options]
@@ -40,6 +40,12 @@
     (and (exists? js/process) (fn? js/process.memoryUsage))
       (println "Memory usages:" (js/JSON.stringify (js/process.memoryUsage)))
     :else (println "[Memof] no fn for memory stats")))
+
+(def verbose?
+  (cond
+    (exists? js/process) (= "true" js/process.env.memofVerbose)
+    (exists? js/localStorage) (= "true" (js/localStorage.getItem "memofVerbose"))
+    :else false))
 
 (defn perform-gc! [*states]
   (let [states-0 @*states, gc (states-0 :gc), *removed-used (atom [])]
@@ -66,7 +72,7 @@
                               (gc :elapse-loop))
                                (do
                                 (swap! *removed-used conj (record :hit-times))
-                                (when (:verbose? gc)
+                                (when verbose?
                                   (println
                                    "[Memof verbose] removing record at loop"
                                    (:loop states-0)
@@ -86,7 +92,7 @@
       " to "
       (count (@*states :entries))))
     (println " Removed counts" (frequencies @*removed-used))
-    (show-memory-usages)))
+    (when verbose? (show-memory-usages))))
 
 (defn new-loop! [*states]
   (swap! *states update :loop inc)
@@ -95,9 +101,8 @@
 
 (defn new-states [gc-options]
   (dev-check gc-options lilac-gc-options)
-  (let [options (merge {:trigger-loop 100, :elapse-loop 200, :verbose? false} gc-options)]
-    (println "Initialized caches with options:" options)
-    (show-memory-usages)
+  (let [options (merge {:trigger-loop 100, :elapse-loop 200} gc-options)]
+    (when verbose? (println "Initialized caches with options:" options) (show-memory-usages))
     {:loop 0, :entries {}, :gc options}))
 
 (defn reset-entries! [*states]
@@ -166,7 +171,7 @@
                {:value value, :initial-loop the-loop, :last-hit-loop the-loop, :hit-times 0})))))))))
 
 (defn user-scripts [*states]
-  (def *states (atom (new-states {:trigger-loop 4, :elapse-loop 2, :verbose? true})))
+  (def *states (atom (new-states {:trigger-loop 4, :elapse-loop 2})))
   (defn f1 [x] )
   (defn f2 [x y] )
   (write-record! *states f1 [1 2 3 4] 10)
