@@ -14,6 +14,14 @@
     (is (some? (memof/access-record *states f1 [1 2]))))))
 
 (deftest
+ test-reset
+ (let [*states (atom (memof/new-states {})), f1 (fn [x] x)]
+   (memof/write-record! *states f1 [1 2] 3)
+   (testing "should have some entries" (is (pos? (count (:entries @*states)))))
+   (memof/reset-entries! *states)
+   (testing "should have two entries" (is (zero? (count (:entries @*states)))))))
+
+(deftest
  test-write
  (let [*states (atom (memof/new-states {})), f1 (fn [x] x), f2 (fn [x] x)]
    (testing "gets nil before writing" (is (nil? (memof/access-record *states f1 [1 2]))))

@@ -107,7 +107,7 @@
 
 (defn reset-entries! [*states]
   (println "[Memof] reset.")
-  (swap! *states assoc :loop 0 :caches {}))
+  (swap! *states assoc :loop 0 :entries {}))
 
 (defn show-summary [states]
   (let [states (if (satisfies? IAtom states)
