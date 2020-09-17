@@ -9,7 +9,7 @@ Function memoization sulotion for Cumulo and Respo
 [![Clojars Project](https://img.shields.io/clojars/v/cumulo/memof.svg)](https://clojars.org/cumulo/memof)
 
 ```edn
-[cumulo/memof "0.2.0-a5"]
+[cumulo/memof "0.2.2"]
 ```
 
 ```clojure
