@@ -1,5 +1,10 @@
 
-(ns memof.test (:require [cljs.test :refer [deftest testing is]] [memof.core :as memof]))
+(ns memof.test
+  (:require [cljs.test :refer [deftest testing is]]
+            [memof.core :as memof]
+            [memof.alias
+             :refer
+             [memof-call reset-calling-caches! tick-calling-loop! *memof-call-states]]))
 
 (deftest
  test-gc
@@ -12,6 +17,15 @@
    (testing
     "used record should kept after GC"
     (is (some? (memof/access-record *states f1 [1 2]))))))
+
+(deftest
+ test-memof-call
+ (testing
+  "usage of memof-call"
+  (is (= (memof-call + 1 2 3) 6))
+  (is (= (memof-call + 1 2 3) 6))
+  (tick-calling-loop!)
+  (reset-calling-caches!)))
 
 (deftest
  test-reset
